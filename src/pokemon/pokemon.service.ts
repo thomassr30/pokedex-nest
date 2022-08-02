@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ContextIdFactory } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
@@ -15,9 +16,17 @@ export class PokemonService {
 
   async create(createPokemonDto: CreatePokemonDto) {
     createPokemonDto.name = createPokemonDto.name.toLowerCase();
+    try {
+      const pokemon = await this.pokemonModel.create(createPokemonDto)
+      return pokemon;
+    } catch (error) {
+      if(error.code === 11000){
+        throw new BadRequestException('El pokemon ya existe')
+      }
+      console.log(error)
+      throw new InternalServerErrorException('No se pudo crear pokemon')
+    }
     
-    const pokemon = await this.pokemonModel.create(createPokemonDto)
-    return pokemon;
   }
 
   findAll() {
