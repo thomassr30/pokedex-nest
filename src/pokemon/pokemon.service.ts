@@ -19,17 +19,14 @@ export class PokemonService {
       const pokemon = await this.pokemonModel.create(createPokemonDto)
       return pokemon;
     } catch (error) {
-      if(error.code === 11000){
-        throw new BadRequestException('El pokemon ya existe')
-      }
-      console.log(error)
-      throw new InternalServerErrorException('No se pudo crear pokemon')
+      this.handleExceptions(error)
     }
     
   }
 
-  findAll() {
-    return `This action returns all pokemon`;
+  async findAll() {
+    const pokemon = await this.pokemonModel.find()
+    return pokemon;
   }
 
   async findOne(term: string) {
@@ -66,7 +63,17 @@ export class PokemonService {
     return {...pokemon.toJSON(), updatePokemonDto}
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pokemon`;
+  async remove(id: string) {
+    const pokemon = await this.findOne(id)
+    await pokemon.deleteOne()
   }
+
+  private handleExceptions(error: any){
+    if(error.code === 11000){
+      throw new BadRequestException('El pokemon ya existe')
+    }
+    console.log(error)
+    throw new InternalServerErrorException('No se pudo crear pokemon')
+  }
+
 }
